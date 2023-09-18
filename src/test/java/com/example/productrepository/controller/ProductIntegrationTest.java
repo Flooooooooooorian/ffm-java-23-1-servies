@@ -2,6 +2,7 @@ package com.example.productrepository.controller;
 
 import com.example.productrepository.products.ProductRepository;
 import com.example.productrepository.products.models.Product;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,6 +24,9 @@ public class ProductIntegrationTest {
     @Autowired
     ProductRepository productRepository;
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     @Test
     @DirtiesContext
     void testGetAllProducts() throws Exception {
@@ -32,7 +36,7 @@ public class ProductIntegrationTest {
         //WHEN
         mockMvc.perform(MockMvcRequestBuilders.get("/api/products"))
 
-        //THEN
+                //THEN
                 .andExpect(status().isOk())
                 .andExpect(content().json("""
                         [
@@ -71,5 +75,40 @@ public class ProductIntegrationTest {
                         }
                         """))
                 .andExpect(jsonPath("$.id").isNotEmpty());
+    }
+
+    @Test
+    @DirtiesContext
+    void testFindProductById() throws Exception {
+        //GIVEN
+        String body = mockMvc.perform(MockMvcRequestBuilders.post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "title": "test-title",
+                                    "price": 23
+                                }
+                                """)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Product responseProduct = objectMapper.readValue(body, Product.class);
+
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/" + responseProduct.id()))
+
+                //THEN
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                        {
+                        "title": "test-title",
+                        "price": 23
+                        }                   
+                        """))
+                .andExpect(jsonPath("$.id").value(responseProduct.id()));
+
     }
 }
