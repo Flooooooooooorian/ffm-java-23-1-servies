@@ -72,4 +72,71 @@ public class ProductIntegrationTest {
                         """))
                 .andExpect(jsonPath("$.id").isNotEmpty());
     }
+
+    @DirtiesContext
+    @Test
+    void testFindProductById() throws Exception {
+        //GIVEN
+        Product product = new Product("123", "test-title", 4);
+        productRepository.save(product);
+
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/products/" + product.id()))
+
+                //THEN
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                        {
+                        "id": "123",
+                        "title": "test-title",
+                        "price": 4
+                        }                   
+                        """));
+
+    }
+
+    @DirtiesContext
+    @Test
+    void testUpdateProductById() throws Exception {
+        //GIVEN
+        Product oldProduct = new Product("123", "test-title", 4);
+        productRepository.save(oldProduct);
+
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/products/" + oldProduct.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                "title": "new-title",
+                                "price": 0
+                                }
+                                """))
+
+                //THEN
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                        {
+                        "id": "123",
+                        "title": "new-title",
+                        "price": 0
+                        }                   
+                        """));
+
+    }
+
+    @DirtiesContext
+    @Test
+    void testDeleteProductById() throws Exception {
+        //GIVEN
+        Product product = new Product("123", "test-title", 4);
+        productRepository.save(product);
+
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/products/" + product.id()))
+
+                //THEN
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+
+    }
 }
