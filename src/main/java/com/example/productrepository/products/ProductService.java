@@ -5,6 +5,7 @@ import com.example.productrepository.products.models.Product;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class ProductService {
@@ -34,7 +35,7 @@ public class ProductService {
 
     public Product findById(String id) {
         return productRepository.findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new NoSuchElementException("Product with id: " + id + " not found!"));
     }
 
     public Product updateProduct(String id, NewProduct productToUpdate) {
